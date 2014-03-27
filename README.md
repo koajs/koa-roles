@@ -18,7 +18,6 @@ $ npm install koa-roles
 ## Usage
 
 ```js
-var authentication = require('your-authentication-module-here');
 var Roles = require('koa-roles');
 var koa = require('koa');
 var app = koa();
@@ -41,43 +40,40 @@ var user = new Roles({
   }
 });
 
-app.use(authentication)
 app.use(user.middleware());
 
 // anonymous users can only access the home page
 // returning false stops any more rules from being
 // considered
 user.use(function *(action) {
-  if (!req.isAuthenticated()) {
-    return action === 'access home page';
-  }
+  return action === 'access home page';
 });
 
-//moderator users can access private page, but
-//they might not be the only ones so we don't return
-//false if the user isn't a moderator
+// moderator users can access private page, but
+// they might not be the only ones so we don't return
+// false if the user isn't a moderator
 user.use('access private page', function (req) {
-  if (req.user.role === 'moderator') {
+  if (this.user.role === 'moderator') {
     return true;
   }
 })
 
 //admin users can access all pages
 user.use(function (req) {
-  if (req.user.role === 'admin') {
+  if (this.user.role === 'admin') {
     return true;
   }
 });
 
 
-app.get('/', user.can('access home page'), function (req, res) {
-  res.render('private');
+app.get('/', user.can('access home page'), function *(next) {
+  this.render('private');
 });
-app.get('/private', user.can('access private page'), function (req, res) {
-  res.render('private');
+app.get('/private', user.can('access private page'), function *(next) {
+  this.render('private');
 });
-app.get('/admin', user.can('access admin page'), function (req, res) {
-  res.render('admin');
+app.get('/admin', user.can('access admin page'), function *(next) {
+  this.render('admin');
 });
 
 app.listen(3000);
