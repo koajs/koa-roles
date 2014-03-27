@@ -52,14 +52,14 @@ user.use(function *(action) {
 // moderator users can access private page, but
 // they might not be the only ones so we don't return
 // false if the user isn't a moderator
-user.use('access private page', function (req) {
+user.use('access private page', function (action) {
   if (this.user.role === 'moderator') {
     return true;
   }
 })
 
 //admin users can access all pages
-user.use(function (req) {
+user.use(function (action) {
   if (this.user.role === 'admin') {
     return true;
   }
