@@ -12,22 +12,22 @@
     }
   },
   "dependencies": {
-    "is-type-of": "0.0.1",
-    "path-to-regexp": "0.1.2"
+    "is-type-of": "~0.3.0",
+    "path-to-regexp": "~0.2.0"
   },
   "devDependencies": {
-    "autod": "*",
-    "co-sleep": "0.0.1",
-    "contributors": "*",
-    "cov": "*",
-    "istanbul-harmony": "*",
-    "jshint": "*",
-    "koa": "0.5.2",
-    "koa-router": "3.1.2",
-    "mocha": "*",
-    "pedding": "0.0.3",
-    "should": "3.2.0-beta1",
-    "supertest": "0.10.0"
+    "autod": "~*",
+    "co-sleep": "~0.0.1",
+    "contributors": "~*",
+    "cov": "~*",
+    "istanbul-harmony": "~*",
+    "jshint": "~*",
+    "koa": "~0.7.0",
+    "koa-router": "~3.1.4",
+    "mocha": "~*",
+    "pedding": "~0.0.3",
+    "should": "~4.0.4",
+    "supertest": "~0.13.0"
   },
   "homepage": "https://github.com/fengmk2/koa-roles",
   "repository": {

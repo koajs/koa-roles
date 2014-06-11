@@ -4,7 +4,7 @@ TIMEOUT = 1000
 MOCHA_OPTS =
 
 install:
-	@npm install --registry=http://r.cnpmjs.org --disturl=http://dist.cnpmjs.org
+	@npm install --registry=http://registry.npm.taobao.org --disturl=http://npm.taobao.org/dist
 
 jshint: install
 	@./node_modules/.bin/jshint .
@@ -25,12 +25,12 @@ test-cov cov: install
 		--timeout $(TIMEOUT) \
 		$(MOCHA_OPTS) \
 		$(TESTS)
-	@./node_modules/.bin/cov coverage
+	@-./node_modules/.bin/cov coverage
 
 test-all: install jshint test cov
 
 autod: install
-	@./node_modules/.bin/autod -w
+	@./node_modules/.bin/autod -w --prefix "~"
 	@$(MAKE) install
 
 contributors: install
