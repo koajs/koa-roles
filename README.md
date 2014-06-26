@@ -1,7 +1,8 @@
 koa-roles
 =======
 
-[![Build Status](https://secure.travis-ci.org/fengmk2/koa-roles.png)](http://travis-ci.org/fengmk2/koa-roles) [![Dependency Status](https://gemnasium.com/fengmk2/koa-roles.png)](https://gemnasium.com/fengmk2/koa-roles)
+[![Build Status](https://travis-ci.org/koajs/koa-roles.svg?branch=0.1.0)](https://travis-ci.org/koajs/koa-roles)
+[![Dependency Status](https://david-dm.org/koajs/koa-roles.svg)](https://david-dm.org/koajs/koa-roles)
 
 [![NPM](https://nodei.co/npm/koa-roles.png?downloads=true&stars=true)](https://nodei.co/npm/koa-roles/)
 
