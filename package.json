@@ -12,8 +12,7 @@
     }
   },
   "dependencies": {
-    "is-type-of": "~0.3.0",
-    "path-to-regexp": "~0.2.0"
+    "is-type-of": "~0.3.0"
   },
   "devDependencies": {
     "autod": "~*",
@@ -40,7 +39,11 @@
     "email": "fengmk2@gmail.com"
   },
   "keywords": [
-    "koa-roles", "roles", "role", "connect-roles", "koa"
+    "koa-roles",
+    "roles",
+    "role",
+    "connect-roles",
+    "koa"
   ],
   "engines": {
     "node": ">= 0.11.9"
