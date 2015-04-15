@@ -15,7 +15,6 @@
  */
 
 var is = require('is-type-of');
-var pathToRegexp = require('path-to-regexp');
 
 module.exports = KoaRoles;
 
