@@ -19,6 +19,63 @@ var pathToRegexp = require('path-to-regexp');
 
 module.exports = KoaRoles;
 
+/**
+ * Role Middleware for Koa
+ * @class KoaRoles
+ * @example
+ * ```js
+ * var Roles = require('koa-roles');
+ * var koa = require('koa');
+ * var app = koa();
+ *
+ * var user = new Roles({
+ *   failureHandler: function *(action) {
+ *     // optional function to customise code that runs when
+ *     // user fails authorisation
+ *     this.status = 403;
+ *     var t = this.accepts('json', 'html');
+ *     if (t === 'json') {
+ *       this.body = {
+ *         message: 'Access Denied - You don\'t have permission to: ' + action
+ *       };
+ *     } else if (t === 'html') {
+ *       this.render('access-denied', {action: action});
+ *     } else {
+ *       this.body = 'Access Denied - You don\'t have permission to: ' + action;
+ *     }
+ *   }
+ * });
+ *
+ * app.use(user.middleware());
+ *
+ * // anonymous users can only access the home page
+ * // returning false stops any more rules from being
+ * // considered
+ * user.use(function *(action) {
+ *   return action === 'access home page';
+ * });
+ *
+ * // moderator users can access private page, but
+ * // they might not be the only ones so we don't return
+ * // false if the user isn't a moderator
+ * user.use('access private page', function (action) {
+ *   if (this.user.role === 'moderator') {
+ *     return true;
+ *   }
+ * });
+ * app.get('/', user.can('access home page'), function *(next) {
+ *   this.render('private');
+ * });
+ * app.get('/private', user.can('access private page'), function *(next) {
+ *   this.render('private');
+ * });
+ * app.get('/admin', user.can('access admin page'), function *(next) {
+ *   this.render('admin');
+ * });
+ *
+ * app.listen(3000);
+ * ```
+ */
 function KoaRoles(options) {
   options = options || {};
   this.functionList = [];
@@ -26,6 +83,11 @@ function KoaRoles(options) {
   this.userProperty = options.userProperty || 'user';
 }
 
+/**
+ * @method KoaRoles#use
+ * @param {String} action - Name of role
+ * @param {Function} fn
+ */
 KoaRoles.prototype.use = function () {
   if (arguments.length === 1) {
     // role.use(fn);
@@ -68,6 +130,10 @@ KoaRoles.prototype.use2 = function (action, fn) {
   });
 };
 
+/**
+ * @method KoaRoles#can
+ * @param {String} action
+ */
 KoaRoles.prototype.can = function (action) {
   var roles = this;
   return function *(next) {
@@ -82,8 +148,17 @@ KoaRoles.prototype.can = function (action) {
   };
 };
 
+/**
+ * @see KoaRoles#can
+ * @method KoaRoles#is
+ */
 KoaRoles.prototype.is = KoaRoles.prototype.can;
 
+/**
+ * @method KoaRoles#test
+ * @param {Context} ctx
+ * @param {String} action
+ */
 KoaRoles.prototype.test = function *(ctx, action) {
   for (var i = 0; i < this.functionList.length; i++){
     var fn = this.functionList[i];
@@ -100,6 +175,9 @@ KoaRoles.prototype.test = function *(ctx, action) {
   return false;
 };
 
+/**
+ * @method KoaRoles#middleware
+ */
 KoaRoles.prototype.middleware = function (options) {
   options = options || {};
   var userProperty = options.userProperty || this.userProperty;
