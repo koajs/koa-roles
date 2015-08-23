@@ -1,4 +1,11 @@
 
+1.0.1 / 2015-08-23
+==================
+
+ * chore: use eslint
+ * chore: remove path-to-regexp dependency
+ * doc: Add JSDoc format documentation.
+
 1.0.0 / 2015-05-12
 ==================
 

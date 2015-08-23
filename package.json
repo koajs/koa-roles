@@ -1,6 +1,6 @@
 {
   "name": "koa-roles",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "koa version of Connect-Roles",
   "main": "index.js",
   "files": [
