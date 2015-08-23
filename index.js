@@ -5,7 +5,7 @@
  * MIT Licensed
  *
  * Authors:
- *   苏千 <suqian.yf@alibaba-inc.com> (http://fengmk2.github.com)
+ *   fengmk2 <m@fengmk2.com> (http://fengmk2.com)
  */
 
 'use strict';
@@ -15,7 +15,6 @@
  */
 
 var is = require('is-type-of');
-var pathToRegexp = require('path-to-regexp');
 
 module.exports = KoaRoles;
 
