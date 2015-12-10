@@ -43,6 +43,15 @@ describe('koa-roles.test.js', function () {
     return this.query.role === 'user';
   });
 
+  roles.use('friend', function () {
+    return this.query.role === 'shaoshuai0102';
+  });
+
+  // override previous friend
+  roles.use('friend', function () {
+    return this.query.role === 'bar';
+  });
+
   // default
   roles.use(function (action) {
     if (this.query.role === action) {
@@ -88,6 +97,10 @@ describe('koa-roles.test.js', function () {
 
   app.get('/profile/:id', roles.can('user or admin'), function *(next) {
     this.body = 'page can visit by user or admin, current is ' + this.query.role;
+  });
+
+  app.get('/friend', roles.can('friend'), function *() {
+    this.body = 'The best friend of foo is ' + this.query.role;
   });
 
   app.get('/any', function *(next) {
@@ -234,5 +247,19 @@ describe('koa-roles.test.js', function () {
     request(app)
     .post('/profile/1/123?role=other')
     .expect(404, done);
+  });
+
+  it('should get /friend 200 for bar', function(done) {
+    request(app)
+    .get('/friend?role=bar')
+    .expect('The best friend of foo is bar')
+    .expect(200, done);
+  });
+
+  it('should get /friend 403 for shaoshuai0102 because of role override', function(done) {
+    request(app)
+    .get('/friend?role=shaoshuai0102')
+    .expect({"message":"Access Denied - You don\'t have permission to: friend"})
+    .expect(403, done);
   });
 });
