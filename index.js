@@ -80,6 +80,7 @@ function KoaRoles(options) {
   this.functionList = [];
   this.failureHandler = options.failureHandler || defaultFailureHandler;
   this.userProperty = options.userProperty || 'user';
+  this.actionMap = {};
 }
 
 /**
@@ -118,10 +119,23 @@ KoaRoles.prototype.use2 = function (action, fn) {
     throw new TypeError('action can\'t start with `/`');
   }
   assertFunction(fn);
+
+  var old = this.actionMap[action];
+  // create or override
+  this.actionMap[action] = fn;
+
+  // action fn have already been used, skip
+  if (old) {
+    return;
+  }
+
+  var roles = this;
   this.use1(function *(act) {
+    // get fn from actionMap
+    var fn = roles.actionMap[action];
     if (act === action) {
       if (is.generatorFunction(fn)) {
-        return yield *fn.call(this);
+        return yield* fn.call(this);
       } else {
         return fn.call(this);
       }
@@ -136,11 +150,11 @@ KoaRoles.prototype.use2 = function (action, fn) {
 KoaRoles.prototype.can = function (action) {
   var roles = this;
   return function *(next) {
-    if (yield *roles.test(this, action)) {
-      return yield *next;
+    if (yield* roles.test(this, action)) {
+      return yield* next;
     }
     if (is.generatorFunction(roles.failureHandler)) {
-      yield *roles.failureHandler.call(this, action);
+      yield* roles.failureHandler.call(this, action);
     } else {
       roles.failureHandler.call(this, action);
     }
@@ -163,7 +177,7 @@ KoaRoles.prototype.test = function *(ctx, action) {
     var fn = this.functionList[i];
     var vote = null;
     if (is.generatorFunction(fn)) {
-      vote = yield *fn.call(ctx, action);
+      vote = yield* fn.call(ctx, action);
     } else {
       vote = fn.call(ctx, action);
     }
@@ -191,13 +205,13 @@ KoaRoles.prototype.middleware = function (options) {
       }
     }
     this.userIs = this.userCan = roleCheck;
-    yield *next;
+    yield* next;
   };
 };
 
 function tester(roles, ctx) {
   return function *(action) {
-    return yield *roles.test(ctx, action);
+    return yield* roles.test(ctx, action);
   };
 }
 
