@@ -1,4 +1,10 @@
 
+1.0.2 / 2015-12-10
+==================
+
+ * chore: add node 4 and 5 ci
+ * fix: role with same action name will override now
+
 1.0.1 / 2015-08-23
 ==================
 
