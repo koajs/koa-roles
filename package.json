@@ -16,7 +16,7 @@
     "contributors": "contributors -f plain -o AUTHORS"
   },
   "dependencies": {
-    "is-type-of": "~0.3.1"
+    "is-type-of": "~1.0.0"
   },
   "devDependencies": {
     "autod": "*",
@@ -27,11 +27,11 @@
     "istanbul-harmony": "*",
     "jshint": "*",
     "koa": "1",
-    "koa-router": "4",
+    "koa-router": "5.3.0",
     "mocha": "*",
     "pedding": "1",
-    "should": "7",
-    "supertest": "0"
+    "should": "8.0.2",
+    "supertest": "1.1.0"
   },
   "homepage": "https://github.com/koajs/koa-roles",
   "repository": {
