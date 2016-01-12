@@ -30,7 +30,7 @@
     "koa-router": "4",
     "mocha": "*",
     "pedding": "1",
-    "should": "7",
+    "should": "8.1.0",
     "supertest": "0"
   },
   "homepage": "https://github.com/koajs/koa-roles",
