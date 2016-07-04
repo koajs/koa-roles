@@ -103,6 +103,10 @@ describe('koa-roles.test.js', function () {
     this.body = 'The best friend of foo is ' + this.query.role;
   });
 
+  app.get('/user/or/friend', roles.can('user', 'friend'), function* () {
+    this.body = 'user or frend is ok';
+  })
+
   app.get('/any', function *(next) {
     var isadmin = yield *this.userCan('admin');
     if (!isadmin) {
@@ -262,4 +266,26 @@ describe('koa-roles.test.js', function () {
     .expect({"message":"Access Denied - You don\'t have permission to: friend"})
     .expect(403, done);
   });
+
+  it('should get /user/or/friend 200 for user', function(done) {
+    request(app)
+    .get('/user/or/friend?role=user')
+    .expect('user or frend is ok')
+    .expect(200, done);
+  });
+
+  it('should get /user/or/friend 200 for friend', function(done) {
+    request(app)
+    .get('/user/or/friend?role=bar')
+    .expect('user or frend is ok')
+    .expect(200, done);
+  });
+
+  it('should get /user/or/friend 403 for another role', function(done) {
+    request(app)
+    .get('/user/or/friend?role=jacky')
+    .expect({"message":"Access Denied - You don\'t have permission to: user, friend"})
+    .expect(403, done);
+  });
+
 });

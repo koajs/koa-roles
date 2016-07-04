@@ -146,17 +146,23 @@ KoaRoles.prototype.use2 = function (action, fn) {
 /**
  * @method KoaRoles#can
  * @param {String} action
+ * @example KoaRoles#can('actionAOnly'), KoaRoles#can('actionA', 'orActionBIsOK')
  */
-KoaRoles.prototype.can = function (action) {
+KoaRoles.prototype.can = function () {
+  var args = args2arr(arguments);
   var roles = this;
   return function *(next) {
-    if (yield* roles.test(this, action)) {
-      return yield* next;
+    for (var i = 0; i < args.length; i++) {
+      if (yield* roles.test(this, args[i])) {
+        return yield* next;
+      }
     }
+
+    var actions = args.join(', ');
     if (is.generatorFunction(roles.failureHandler)) {
-      yield* roles.failureHandler.call(this, action);
+      yield* roles.failureHandler.call(this, actions);
     } else {
-      roles.failureHandler.call(this, action);
+      roles.failureHandler.call(this, actions);
     }
   };
 };
@@ -225,4 +231,12 @@ function defaultFailureHandler(action) {
   } else {
     this.body = 'Access Denied - You don\'t have permission to: ' + action;
   }
+}
+
+function args2arr(args) {
+  var arr = [];
+  for (var i = 0; i < args.length; i++) {
+    arr.push(args[i]);
+  }
+  return arr;
 }
