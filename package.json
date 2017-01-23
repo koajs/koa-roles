@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "autod": "*",
+    "bluebird": "^3.4.7",
     "co-sleep": "0",
     "contributors": "*",
     "cov": "*",
