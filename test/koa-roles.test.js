@@ -8,18 +8,19 @@
  *   fengmk2 <fengmk2@gmail.com> (http://fengmk2.github.com)
  */
 
-"use strict";
+'use strict';
 
 /**
  * Module dependencies.
  */
 
-var should = require('should');
+require('should');
 var request = require('supertest');
 var koa = require('koa');
 var sleep = require('co-sleep');
 var router = require('koa-router');
 var pedding = require('pedding');
+var Promise = require('bluebird');
 var Roles = require('../');
 
 describe('koa-roles.test.js', function () {
@@ -33,6 +34,15 @@ describe('koa-roles.test.js', function () {
   roles.use('user or admin', function *() {
     yield sleep(1);
     return this.query.role === 'user' || this.query.role === 'admin';
+  });
+
+  roles.use('employee', function() {
+    const role = this.query.role;
+    return new Promise(function(resolve) {
+      setTimeout(function() {
+        resolve(role === 'employee');
+      }, 1000);
+    });
   });
 
   roles.use('update', function () {
@@ -67,12 +77,22 @@ describe('koa-roles.test.js', function () {
     }
   });
 
+  // using async function
+  roles.use(function(action) {
+    const role = this.query.role3;
+    return new Promise(function(resolve) {
+      setTimeout(function() {
+        resolve(role === action);
+      }, 1000);
+    });
+  });
+
   app.use(function *(next) {
     if (this.query.role) {
       this.user = {};
       this.locals = {};
     }
-    yield *next;
+    yield next;
   });
 
   app.use(roles.middleware());
@@ -83,11 +103,15 @@ describe('koa-roles.test.js', function () {
     this.body = 'page for every one can visit';
   });
 
-  app.get('/admin', roles.can('admin'), function *(next) {
+  app.get('/admin', roles.can('admin'), function *() {
     this.body = 'page only for admin can visit';
   });
 
-  app.get('/user', roles.is('user'), function *(next) {
+  app.get('/admin/employee', roles.can('employee'), function *() {
+    this.body = 'page for employee can visit';
+  });
+
+  app.get('/user', roles.is('user'), function *() {
     this.body = 'page only for user';
   });
 
@@ -95,7 +119,7 @@ describe('koa-roles.test.js', function () {
     this.body = 'page for user update';
   });
 
-  app.get('/profile/:id', roles.can('user or admin'), function *(next) {
+  app.get('/profile/:id', roles.can('user or admin'), function *() {
     this.body = 'page can visit by user or admin, current is ' + this.query.role;
   });
 
@@ -103,8 +127,8 @@ describe('koa-roles.test.js', function () {
     this.body = 'The best friend of foo is ' + this.query.role;
   });
 
-  app.get('/any', function *(next) {
-    var isadmin = yield *this.userCan('admin');
+  app.get('/any', function *() {
+    var isadmin = yield this.userCan('admin');
     if (!isadmin) {
       return this.throw(403);
     }
@@ -157,6 +181,18 @@ describe('koa-roles.test.js', function () {
     .get('/?role2=admin')
     .expect('page for every one can visit')
     .expect(200, done);
+
+    request(app)
+    .get('/?role3=admin')
+    .expect('page for every one can visit')
+    .expect(200, done);
+  });
+
+  it('should get / 200 for employee', function (done) {
+    request(app)
+    .get('/admin/employee?role=employee')
+    .expect('page for employee can visit')
+    .expect(200, done);
   });
 
   it('should get /admin 200 for admin', function (done) {
@@ -180,7 +216,7 @@ describe('koa-roles.test.js', function () {
     request(app)
     .get('/admin?role2=admin2')
     .set('accept', 'application/json')
-    .expect({"message":"Access Denied - You don\'t have permission to: admin"})
+    .expect({'message': 'Access Denied - You don\'t have permission to: admin'})
     .expect(403, done);
   });
 
@@ -199,7 +235,7 @@ describe('koa-roles.test.js', function () {
     request(app)
     .get('/profile/2?role2=admin2')
     .set('accept', 'application/json')
-    .expect({"message":"Access Denied - You don\'t have permission to: user or admin"})
+    .expect({'message': 'Access Denied - You don\'t have permission to: user or admin'})
     .expect(403, done);
   });
 
@@ -241,7 +277,7 @@ describe('koa-roles.test.js', function () {
 
     request(app)
     .post('/profile/1?role=other')
-    .expect({"message":"Access Denied - You don\'t have permission to: update"})
+    .expect({'message': 'Access Denied - You don\'t have permission to: update'})
     .expect(403, done);
 
     request(app)
@@ -259,7 +295,7 @@ describe('koa-roles.test.js', function () {
   it('should get /friend 403 for shaoshuai0102 because of role override', function(done) {
     request(app)
     .get('/friend?role=shaoshuai0102')
-    .expect({"message":"Access Denied - You don\'t have permission to: friend"})
+    .expect({'message': 'Access Denied - You don\'t have permission to: friend'})
     .expect(403, done);
   });
 });
