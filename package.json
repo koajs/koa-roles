@@ -28,7 +28,7 @@
     "istanbul-harmony": "*",
     "jshint": "*",
     "koa": "1",
-    "koa-router": "4",
+    "koa-router": "5.3.0",
     "mocha": "*",
     "pedding": "1",
     "should": "7",
