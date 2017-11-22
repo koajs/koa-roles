@@ -23,6 +23,7 @@
     "co-sleep": "^0.0.1",
     "contributors": "*",
     "egg-bin": "^4.3.5",
+    "egg-ci": "^1.8.0",
     "eslint": "^4.11.0",
     "eslint-config-egg": "^5.1.1",
     "koa": "^2.4.1",
@@ -50,6 +51,9 @@
   ],
   "engines": {
     "node": ">= 8.0.0"
+  },
+  "ci": {
+    "version": "8, 9"
   },
   "author": "fengmk2 <fengmk2@gmail.com> (http://fengmk2.com)",
   "license": "MIT"
