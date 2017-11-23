@@ -32,24 +32,24 @@ $ npm install koa-roles
 ## Usage
 
 ```js
-var Roles = require('koa-roles');
-var koa = require('koa');
-var app = koa();
+const Roles = require('koa-roles');
+const koa = require('koa');
+const app = new koa();
 
-var user = new Roles({
-  failureHandler: function *(action) {
+const user = new Roles({
+  async failureHandler(ctx, action) {
     // optional function to customise code that runs when
     // user fails authorisation
-    this.status = 403;
-    var t = this.accepts('json', 'html');
+    ctx.status = 403;
+    var t = ctx.accepts('json', 'html');
     if (t === 'json') {
-      this.body = {
+      ctx.body = {
         message: 'Access Denied - You don\'t have permission to: ' + action
       };
     } else if (t === 'html') {
-      this.render('access-denied', {action: action});
+      ctx.render('access-denied', {action: action});
     } else {
-      this.body = 'Access Denied - You don\'t have permission to: ' + action;
+      ctx.body = 'Access Denied - You don\'t have permission to: ' + action;
     }
   }
 });
@@ -59,35 +59,34 @@ app.use(user.middleware());
 // anonymous users can only access the home page
 // returning false stops any more rules from being
 // considered
-user.use(function *(action) {
-  return action === 'access home page';
+user.use(async (ctx, action) => {
+  return ctx.user || action === 'access home page';
 });
 
 // moderator users can access private page, but
 // they might not be the only ones so we don't return
 // false if the user isn't a moderator
-user.use('access private page', function (action) {
-  if (this.user.role === 'moderator') {
+user.use('access private page', ctx => {
+  if (ctx.user.role === 'moderator') {
     return true;
   }
 })
 
 //admin users can access all pages
-user.use(function (action) {
-  if (this.user.role === 'admin') {
+user.use((ctx, action) => {
+  if (ctx.user.role === 'admin') {
     return true;
   }
 });
 
-
-app.get('/', user.can('access home page'), function *(next) {
-  this.render('private');
+app.get('/', user.can('access home page'), async ctx => {
+  await ctx.render('private');
 });
-app.get('/private', user.can('access private page'), function *(next) {
-  this.render('private');
+app.get('/private', user.can('access private page'), async ctx => {
+  await ctx.render('private');
 });
-app.get('/admin', user.can('access admin page'), function *(next) {
-  this.render('admin');
+app.get('/admin', user.can('access admin page'), async ctx => {
+  await ctx.render('admin');
 });
 
 app.listen(3000);

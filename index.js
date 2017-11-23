@@ -1,20 +1,6 @@
-/**!
- * koa-roles - index.js
- *
- * Copyright(c) Alibaba Group Holding Limited.
- * MIT Licensed
- *
- * Authors:
- *   fengmk2 <m@fengmk2.com> (http://fengmk2.com)
- */
-
 'use strict';
 
-/**
- * Module dependencies.
- */
-
-var is = require('is-type-of');
+const is = require('is-type-of');
 
 module.exports = KoaRoles;
 
@@ -88,7 +74,7 @@ function KoaRoles(options) {
  * @param {String} action - Name of role
  * @param {Function} fn
  */
-KoaRoles.prototype.use = function () {
+KoaRoles.prototype.use = function() {
   if (arguments.length === 1) {
     // role.use(fn);
     this.use1(arguments[0]);
@@ -106,12 +92,12 @@ function assertFunction(fn) {
   }
 }
 
-KoaRoles.prototype.use1 = function (fn) {
+KoaRoles.prototype.use1 = function(fn) {
   assertFunction(fn);
   this.functionList.push(fn);
 };
 
-KoaRoles.prototype.use2 = function (action, fn) {
+KoaRoles.prototype.use2 = function(action, fn) {
   if (typeof action !== 'string') {
     throw new TypeError('Expected action to be of type string');
   }
@@ -120,7 +106,7 @@ KoaRoles.prototype.use2 = function (action, fn) {
   }
   assertFunction(fn);
 
-  var old = this.actionMap[action];
+  const old = this.actionMap[action];
   // create or override
   this.actionMap[action] = fn;
 
@@ -129,16 +115,12 @@ KoaRoles.prototype.use2 = function (action, fn) {
     return;
   }
 
-  var roles = this;
-  this.use1(function *(act) {
+  const roles = this;
+  this.use1((ctx, act) => {
     // get fn from actionMap
-    var fn = roles.actionMap[action];
+    const fn = roles.actionMap[action];
     if (act === action) {
-      if (is.generatorFunction(fn)) {
-        return yield fn.call(this);
-      } else {
-        return fn.call(this);
-      }
+      return fn(ctx, act);
     }
   });
 };
@@ -147,17 +129,14 @@ KoaRoles.prototype.use2 = function (action, fn) {
  * @method KoaRoles#can
  * @param {String} action
  */
-KoaRoles.prototype.can = function (action) {
-  var roles = this;
-  return function *(next) {
-    if (yield roles.test(this, action)) {
-      return yield next;
+KoaRoles.prototype.can = function(action) {
+  const roles = this;
+  return async (ctx, next) => {
+    if (await roles.test(ctx, action)) {
+      return next();
     }
-    if (is.generatorFunction(roles.failureHandler)) {
-      yield roles.failureHandler.call(this, action);
-    } else {
-      roles.failureHandler.call(this, action);
-    }
+    const r = roles.failureHandler(ctx, action);
+    if (is.promise(r)) await r;
   };
 };
 
@@ -172,18 +151,13 @@ KoaRoles.prototype.is = KoaRoles.prototype.can;
  * @param {Context} ctx
  * @param {String} action
  */
-KoaRoles.prototype.test = function *(ctx, action) {
-  for (var i = 0; i < this.functionList.length; i++){
-    var fn = this.functionList[i];
-    var vote = null;
-    if (is.generatorFunction(fn)) {
-      vote = yield fn.call(ctx, action);
-    } else {
-      vote = fn.call(ctx, action);
-    }
-    if (typeof vote === 'boolean') {
-      return vote;
-    }
+KoaRoles.prototype.test = async function(ctx, action) {
+  for (let i = 0; i < this.functionList.length; i++) {
+    const fn = this.functionList[i];
+    let vote = fn(ctx, action);
+    if (is.promise(vote)) vote = await vote;
+
+    if (typeof vote === 'boolean') return vote;
   }
   return false;
 };
@@ -191,38 +165,29 @@ KoaRoles.prototype.test = function *(ctx, action) {
 /**
  * @method KoaRoles#middleware
  */
-KoaRoles.prototype.middleware = function (options) {
+KoaRoles.prototype.middleware = function(options) {
   options = options || {};
-  var userProperty = options.userProperty || this.userProperty;
-  var roles = this;
-  return function *(next) {
-    var ctx = this;
-    var roleCheck = tester(roles, ctx);
+  const userProperty = options.userProperty || this.userProperty;
+  const roles = this;
+  return (ctx, next) => {
+    const roleCheck = tester(roles, ctx);
     if (ctx[userProperty]) {
       ctx[userProperty].is = ctx[userProperty].can = roleCheck;
-      if (this.locals && !this.locals[userProperty]) {
-        this.locals[userProperty] = this[userProperty];
+      if (ctx.locals && !ctx.locals[userProperty]) {
+        ctx.locals[userProperty] = ctx[userProperty];
       }
     }
-    this.userIs = this.userCan = roleCheck;
-    yield next;
+    ctx.userIs = ctx.userCan = roleCheck;
+    return next();
   };
 };
 
 function tester(roles, ctx) {
-  return function* (action) {
-    return yield roles.test(ctx, action);
-  };
+  return action => roles.test(ctx, action);
 }
 
-function defaultFailureHandler(action) {
-  this.status = 403;
-  var t = this.accepts('json', 'html');
-  if (t === 'json') {
-    this.body = {
-      message: 'Access Denied - You don\'t have permission to: ' + action
-    };
-  } else {
-    this.body = 'Access Denied - You don\'t have permission to: ' + action;
-  }
+function defaultFailureHandler(ctx, action) {
+  const message = `Access Denied - You don't have permission to: ${action}`;
+  ctx.body = ctx.accepts('json', 'html') === 'json' ? { message } : message;
+  ctx.status = 403;
 }
