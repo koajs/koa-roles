@@ -30,13 +30,13 @@ describe('koa-roles.test.js', function() {
     return true;
   });
 
-  roles.use('user or admin', async function(action, ctx) {
+  roles.use('user or admin', async ctx => {
     await sleep(1);
     return ctx.query.role === 'user' || ctx.query.role === 'admin';
   });
 
-  roles.use('employee', function() {
-    const role = this.query.role;
+  roles.use('employee', ctx => {
+    const role = ctx.query.role;
     return new Promise(function(resolve) {
       setTimeout(function() {
         resolve(role === 'employee');
@@ -44,41 +44,41 @@ describe('koa-roles.test.js', function() {
     });
   });
 
-  roles.use('update', function() {
-    return this.query.role === 'user';
+  roles.use('update', ctx => {
+    return ctx.query.role === 'user';
   });
 
-  roles.use('user', function() {
-    return this.query.role === 'user';
+  roles.use('user', ctx => {
+    return ctx.query.role === 'user';
   });
 
-  roles.use('friend', function() {
-    return this.query.role === 'shaoshuai0102';
+  roles.use('friend', ctx => {
+    return ctx.query.role === 'shaoshuai0102';
   });
 
   // override previous friend
-  roles.use('friend', function() {
-    return this.query.role === 'bar';
+  roles.use('friend', ctx => {
+    return ctx.query.role === 'bar';
   });
 
   // default
-  roles.use(function(action) {
-    if (this.query.role === action) {
+  roles.use((ctx, action) => {
+    if (ctx.query.role === action) {
       return true;
     }
   });
 
   // other default role check using generator function
-  roles.use(async function(action) {
+  roles.use(async (ctx, action) => {
     await sleep(2);
-    if (this.query.role2 === action) {
+    if (ctx.query.role2 === action) {
       return true;
     }
   });
 
   // using async function
-  roles.use(function(action) {
-    const role = this.query.role3;
+  roles.use((ctx, action) => {
+    const role = ctx.query.role3;
     return new Promise(function(resolve) {
       setTimeout(function() {
         resolve(role === action);
