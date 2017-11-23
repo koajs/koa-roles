@@ -1,4 +1,10 @@
 
+2.0.0 / 2017-11-23
+==================
+
+**others**
+  * [[`ddc662e`](http://github.com/koajs/koa-roles/commit/ddc662e1ceab46205962de395aa7d1fd1b77d146)] -  refactor: [BREAK] use async function and support koa@2 (#13) (Yiyu He <<dead_horse@qq.com>>)
+
 1.0.3 / 2017-01-25
 ==================
 
