@@ -33,9 +33,11 @@ $ npm install koa-roles
 
 ```js
 const Roles = require('koa-roles');
-const koa = require('koa');
-const app = new koa();
+const Koa = require('koa');
+const Router = require('koa-router');
 
+const app = new Koa();
+const router = new Router();
 const user = new Roles({
   async failureHandler(ctx, action) {
     // optional function to customise code that runs when
@@ -55,7 +57,9 @@ const user = new Roles({
 });
 
 app.use(user.middleware());
-
+app.use(router.routes())
+  .use(router.allowedMethods());
+  
 // anonymous users can only access the home page
 // returning false stops any more rules from being
 // considered
@@ -79,13 +83,13 @@ user.use((ctx, action) => {
   }
 });
 
-app.get('/', user.can('access home page'), async ctx => {
+router.get('/', user.can('access home page'), async ctx => {
   await ctx.render('private');
 });
-app.get('/private', user.can('access private page'), async ctx => {
+router.get('/private', user.can('access private page'), async ctx => {
   await ctx.render('private');
 });
-app.get('/admin', user.can('access admin page'), async ctx => {
+router.get('/admin', user.can('access admin page'), async ctx => {
   await ctx.render('admin');
 });
 
