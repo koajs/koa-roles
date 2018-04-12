@@ -16,6 +16,8 @@
     "contributors": "contributors -f plain -o AUTHORS"
   },
   "dependencies": {
+    "co": "^4.6.0",
+    "esprima": "^4.0.0",
     "is-type-of": "^1.2.0"
   },
   "devDependencies": {

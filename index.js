@@ -1,8 +1,46 @@
 'use strict';
 
+const co = require('co');
+const esprima = require('esprima');
 const is = require('is-type-of');
 
 module.exports = KoaRoles;
+
+function returnFn(fn) {
+  if (is.generatorFunction(fn)) fn = co.wrap(fn);
+  return function(ctx, action) {
+    return fn.call(ctx, action);
+  };
+}
+
+function makeCompatWrapper(fn) {
+  const str = fn.toString();
+  if (fn.length >= 2 || str.indexOf('[native code]') >= 0) return fn;
+
+  const ast = esprima.parseScript(`(${str})`).body[0].expression;
+
+  // only function, but not arrow function
+  if (!ast || ast.type !== 'FunctionExpression') return fn;
+
+  if (!fn.length) {
+    return returnFn(fn);
+  }
+
+  const param = ast.params[0];
+
+  // because `ctx` is an object but `action` is a string
+  if (param.type === 'ObjectPattern') return fn;
+
+  // if param name is `action` or `act`, we compact it
+  let name;
+  if (param.type === 'AssignmentPattern') name = param.left.name;
+  if (param.type === 'Identifier') name = param.name;
+  if (name === 'action' || name === 'act') {
+    return returnFn(fn);
+  }
+
+  return fn;
+}
 
 /**
  * Role Middleware for Koa
@@ -94,7 +132,7 @@ function assertFunction(fn) {
 
 KoaRoles.prototype.use1 = function(fn) {
   assertFunction(fn);
-  this.functionList.push(fn);
+  this.functionList.push(makeCompatWrapper(fn));
 };
 
 KoaRoles.prototype.use2 = function(action, fn) {
@@ -105,6 +143,7 @@ KoaRoles.prototype.use2 = function(action, fn) {
     throw new TypeError('action can\'t start with `/`');
   }
   assertFunction(fn);
+  fn = makeCompatWrapper(fn);
 
   const old = this.actionMap[action];
   // create or override
