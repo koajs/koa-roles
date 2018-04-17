@@ -57,8 +57,25 @@ describe('koa-roles.test.js', function() {
   });
 
   // override previous friend
-  roles.use('friend', ctx => {
+  roles.use('friend', function(ctx) {
     return ctx.query.role === 'bar';
+  });
+
+  // compat
+  roles.use('compat1', function() {
+    return this.query.role100 === 'compat1';
+  });
+  roles.use('compat2', async function(action) { return this.query.role101 === action; });
+  roles.use('compat3', async function(act) {
+    await sleep(2);
+    return this.query.role102 === act;
+  });
+  roles.use('compat4', function* (act) {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve(this.query.role103 === act);
+      }, 1000);
+    });
   });
 
   // default
@@ -125,6 +142,22 @@ describe('koa-roles.test.js', function() {
 
   router.get('/friend', roles.can('friend'), async ctx => {
     ctx.body = 'The best friend of foo is ' + ctx.query.role;
+  });
+
+  router.get('/compat1', roles.can('compat1'), async ctx => {
+    ctx.body = 'aloha!';
+  });
+
+  router.get('/compat2', roles.can('compat2'), async ctx => {
+    ctx.body = 'aloha!';
+  });
+
+  router.get('/compat3', roles.can('compat3'), async ctx => {
+    ctx.body = 'aloha!';
+  });
+
+  router.get('/compat4', roles.can('compat4'), async ctx => {
+    ctx.body = 'aloha!';
   });
 
   router.get('/any', async ctx => {
@@ -297,5 +330,35 @@ describe('koa-roles.test.js', function() {
       .get('/friend?role=shaoshuai0102')
       .expect({ message: 'Access Denied - You don\'t have permission to: friend' })
       .expect(403, done);
+  });
+
+  describe('compat', function() {
+    it('should get /compat1', function(done) {
+      request(app)
+        .get('/compat1?role=compat1&&role100=compat1')
+        .expect('aloha!')
+        .expect(200, done);
+    });
+
+    it('should get /compat2', function(done) {
+      request(app)
+        .get('/compat2?role=compat1&&role101=compat2')
+        .expect('aloha!')
+        .expect(200, done);
+    });
+
+    it('should get /compat3', function(done) {
+      request(app)
+        .get('/compat3?role=compat3&&role102=compat3')
+        .expect('aloha!')
+        .expect(200, done);
+    });
+
+    it('should get /compat4', function(done) {
+      request(app)
+        .get('/compat4?role=compat4&&role103=compat4')
+        .expect('aloha!')
+        .expect(200, done);
+    });
   });
 });
