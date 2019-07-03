@@ -127,15 +127,17 @@ KoaRoles.prototype.use2 = function(action, fn) {
 
 /**
  * @method KoaRoles#can
- * @param {String} action
+ * @param {...String} actions
  */
-KoaRoles.prototype.can = function(action) {
+KoaRoles.prototype.can = function(...actions) {
   const roles = this;
   return async (ctx, next) => {
-    if (await roles.test(ctx, action)) {
-      return next();
+    for (let i = 0; i < actions.length; i++) {
+      if (await roles.test(ctx, actions[i])) {
+        return next();
+      }
     }
-    const r = roles.failureHandler(ctx, action);
+    const r = roles.failureHandler(ctx, ...actions);
     if (is.promise(r)) await r;
   };
 };
@@ -186,8 +188,8 @@ function tester(roles, ctx) {
   return action => roles.test(ctx, action);
 }
 
-function defaultFailureHandler(ctx, action) {
-  const message = `Access Denied - You don't have permission to: ${action}`;
+function defaultFailureHandler(ctx, ...actions) {
+  const message = `Access Denied - You don't have permission to: ${actions.join(' or ')}`;
   ctx.body = ctx.accepts('json', 'html') === 'json' ? { message } : message;
   ctx.status = 403;
 }

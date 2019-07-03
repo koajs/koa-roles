@@ -93,6 +93,32 @@ router.get('/admin', user.can('access admin page'), async ctx => {
   await ctx.render('admin');
 });
 
+//foo and bar can access to specific page
+user.use('foo', ctx => {
+  if (ctx.user.role === 'foo') {
+    return true;
+  }
+})
+
+user.use('bar', ctx => {
+  if (ctx.user.role === 'bar') {
+    return true;
+  }
+})
+
+//"is" is allias for can
+//if you need allow access to page for some different roles
+//you should pass each of them.
+//foo and bar can access to this page
+router.get('/foobar', user.is('foo', 'bar'), async ctx => {
+  await ctx.render('foobar');
+})
+
+//in this case your failureHandler should take a variable number of parameters
+const user = new Roles({
+  async failureHandler(ctx, ...actions) { /** body */ };
+})
+
 app.listen(3000);
 ```
 
